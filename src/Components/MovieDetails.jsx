@@ -3,9 +3,26 @@ import Loader from "./Loader";
 import StarRating from "../StarRating";
 const Key = "a5ae5830";
 
-export default function MovieDetails({ selectedId, onCloseMovie }) {
+export default function MovieDetails({
+  selectedId,
+  onCloseMovie,
+  onAddWatched,
+}) {
   const [movie, setMovie] = useState({});
   const [loading, setLoading] = useState(false);
+
+  function handleAdd() {
+    const newWatchedMovie = {
+      imdbID: selectedId,
+      title,
+      year,
+      poster,
+      imdbRating: Number(imdbRating),
+      runtime: Number(runtime.split(" ").at(0)),
+    };
+
+    onAddWatched(newWatchedMovie);
+  }
 
   const {
     Title: title,
@@ -62,6 +79,7 @@ export default function MovieDetails({ selectedId, onCloseMovie }) {
 
           <section>
             <StarRating maxRating={10} size={24} />
+            <button className="btn-add" onClick={handleAdd}></button>
             <p>
               <em>{plot}</em>
             </p>

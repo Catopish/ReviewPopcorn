@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import StarRating from "./StarRating";
 import MovieDetails from "./Components/MovieDetails";
 import Loader from "./Components/Loader";
 import WatchedSummary from "./Components/WatchedSummary";
@@ -24,7 +23,7 @@ export default function App() {
   }
 
   function handleAddWatched(movie) {
-    setWatched((watched = [...watched, movie]));
+    setWatched((watched) => [...watched, movie]);
   }
 
   useEffect(
@@ -86,6 +85,7 @@ export default function App() {
             <MovieDetails
               selectedId={selectedId}
               onCloseMovie={handleCloseMovie}
+              onAddWatched={handleAddWatched}
             />
           ) : (
             <>
