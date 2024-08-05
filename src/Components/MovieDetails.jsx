@@ -32,6 +32,25 @@ export default function MovieDetails({
     Genre: genre,
   } = movie;
 
+  //NOTE: nambahin event listener buat esc
+  useEffect(
+    function () {
+      function CallBack(e) {
+        if (e.code === "Escape") {
+          onCloseMovie();
+        }
+      }
+
+      document.addEventListener("keydown", CallBack);
+
+      return function () {
+        document.removeEventListener("keydown", CallBack);
+      };
+    },
+    [onCloseMovie],
+  );
+
+  //NOTE: ganti title tab tiap milih movie
   useEffect(
     function () {
       if (!title) return;
@@ -44,6 +63,7 @@ export default function MovieDetails({
     [title],
   );
 
+  //NOTE: fetch movie details
   useEffect(
     function () {
       async function getMovieDetails() {
