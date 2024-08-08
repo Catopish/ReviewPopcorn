@@ -1,24 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MovieDetails from "./Components/MovieDetails";
 import Loader from "./Components/Loader";
 import WatchedSummary from "./Components/WatchedSummary";
 import WatchedMoviesList from "./Components/WatchedMoviesList";
-
-const Key = "a5ae5830";
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
+import { useKey } from "./useKey";
 
 export default function App() {
-  const [movies, setMovies] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setIsError] = useState("");
-  const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-
-  // const [watched, setWatched] = useState([]);
-  // NOTE: manggil local storager browser
-  const [watched, setWatched] = useState(function () {
-    const storedValue = localStorage.getItem("watched");
-    return storedValue;
-  });
+  const [query, setQuery] = useState("");
+  const { movies, isLoading, error } = useMovies(query);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -37,65 +30,6 @@ export default function App() {
   function handleDeleteMovie(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
-
-  //NOTE: nyimpen di local storage browser
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched],
-  );
-
-  useEffect(
-    function () {
-      //NOTE:buat ngurangin fetch
-      const controller = new AbortController();
-
-      //NOTE: buat fetch movies
-      async function fetchMovies() {
-        try {
-          setIsLoading(true);
-          setIsError("");
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${Key}&s=${query}`,
-            //NOTE: disini juga hrus ditambahin
-            { signal: controller.signal },
-          );
-
-          if (!res.ok)
-            throw new Error("Something went wrong with fetching Movies");
-
-          const data = await res.json();
-          if (data.Response === "False") {
-            throw new Error("Movie not found🥲");
-          }
-
-          setMovies(data.Search);
-          setIsError("");
-        } catch (err) {
-          console.error(err.message);
-          if (err.name !== "AbortError") setIsError(err.message);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-      //NOTE:: buat biar ga search kalau hurufnya dibawah 3
-      if (query.length < 3) {
-        setMovies([]);
-        setIsError("");
-        return;
-      }
-
-      //NOTE: pastiin movie details tutup dulu baru kita search
-      handleCloseMovie();
-      fetchMovies();
-      //NOTE:disini juga hrus pake buat ngurangin fetch
-      return function () {
-        controller.abort();
-      };
-    },
-    [query],
-  );
 
   return (
     <>
@@ -164,6 +98,14 @@ function Logo() {
 }
 
 function Search({ query, setQuery }) {
+  const inputEl = useRef(null);
+
+  useKey("Enter", function () {
+    if (document.activeElement === inputEl.current) return;
+    inputEl.current.focus();
+    setQuery("");
+  });
+
   return (
     <input
       className="search"
@@ -171,6 +113,7 @@ function Search({ query, setQuery }) {
       placeholder="Search movies..."
       value={query}
       onChange={(e) => setQuery(e.target.value)}
+      ref={inputEl}
     />
   );
 }

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Loader from "./Loader";
 import StarRating from "../StarRating";
+import { useKey } from "../useKey";
 const Key = "a5ae5830";
 
 export default function MovieDetails({
@@ -13,8 +14,13 @@ export default function MovieDetails({
   const [loading, setLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
 
+  const countRef = useRef(0);
+
+  useEffect(() => {
+    if (userRating) countRef.current += 1;
+  }, [userRating]);
+
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
-  console.log(isWatched);
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId,
   )?.userRating;
@@ -32,23 +38,7 @@ export default function MovieDetails({
     Genre: genre,
   } = movie;
 
-  //NOTE: nambahin event listener buat esc
-  useEffect(
-    function () {
-      function CallBack(e) {
-        if (e.code === "Escape") {
-          onCloseMovie();
-        }
-      }
-
-      document.addEventListener("keydown", CallBack);
-
-      return function () {
-        document.removeEventListener("keydown", CallBack);
-      };
-    },
-    [onCloseMovie],
-  );
+  useKey("Escape", onCloseMovie);
 
   //NOTE: ganti title tab tiap milih movie
   useEffect(
@@ -89,6 +79,7 @@ export default function MovieDetails({
       imdbRating: Number(imdbRating),
       runtime: Number(runtime.split(" ").at(0)),
       userRating,
+      countRating: countRef.current,
     };
 
     onAddWatched(newWatchedMovie);
